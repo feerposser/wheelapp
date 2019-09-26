@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div id="content">
+    <div class="container-fluid">
+      <div class="container">
+
+          <div class="card o-hidden border-0 shadow-lg my-5">
+            <div class="card-body p-0">
+              <!-- Nested Row within Card Body -->
+              <div class="row">
+                <div id="map" class="col-lg-5 d-none d-lg-block"></div>
+                <div class="col-lg-7">
+                  <div class="p-5">
+                    <div class="text-center">
+                      <h1 class="h4 text-gray-900 mb-4">Denuncie um hotspot</h1>
+                    </div>
+                    <hr>
+                    <form id="hotspot" class="user" action="/hotspots/" method="POST">
+                      <div class="form-group row">
+                        <div class="col-sm-6 mb-3 mb-sm-0">
+                          <input type="text" class="form-control form-control-user" id="title" name="title" placeholder="Titulo">
+                        </div>
+                        <div class="col-sm-6">
+                          <select id="category" name="category" class="form-control form-control-user">
+                              {% for categorie in categories %}
+                              <option value="{{categorie.id}}">{{categorie.name}}</option>
+                              {% endfor %}
+                          </select>
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <input type="textarea" class="form-control form-control-user" id="description" name="description" placeholder="Descricao">
+                      </div>
+                      <div class="form-group row">
+                        <div class="col-sm-6 mb-3 mb-sm-0">
+                          <input type="text" class="form-control form-control-user" id="user" name="user" placeholder="Usuario">
+                        </div>
+                      </div>
+                      <button class="text-white btn btn-success btn-icon-split">
+                              <span class="icon text-white-50">
+                                      <i class="fas fa-check"></i>
+                                  </span>
+                                  <span class="text">Enviar</span>
+                      </button>
+                      <hr>
+                      <input readonly type="hidden" name="lat" id="lat" required>
+                      <input readonly type="hidden" name="lng" id="lng" required>
+                      {% csrf_token %}
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+      </div>
+    </div>
+</div>
+  <script>
+    function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 15,
+            center: {lat: -28.2403304, lng: -52.3763615 }
+        });
+
+        map.addListener('click', function(e) {
+            placeMarkerAndPanTo(e.latLng, map);
+            setLatLng(e.latLng);
+        });
+    }
+
+    function placeMarkerAndPanTo(latLng, map) {
+        var marker = new google.maps.Marker({
+            position: latLng,
+            map: map
+        });
+        map.panTo(latLng);
+    }
+
+    function setLatLng(latLng) {
+        document.getElementById("lat").value = latLng.lat();
+        document.getElementById("lng").value = latLng.lng();        
+    }
+  </script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_MAPS_KEY_HERE&callback=initMap" async defer></script>
+{% endblock %}

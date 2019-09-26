@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+#map {
+        height: 100%;
+        width: 100%
+      }
+</style>
+
+<div id="map"></div>
+
+<script>
+    function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 15,
+            center: {lat: -28.2403304, lng: -52.3763615 }
+        });
+
+        fetch("http://localhost:8000/api/hotspots/").then(function(response) {
+            response.json().then(function(hotspots) {
+                hotspots.map(function(hotspot) {
+                    var marker = new google.maps.Marker({
+                        position: {'lat': hotspot.lat, 'lng': hotspot.lng},
+                        map: map,
+                        title: hotspot.title
+                    });
+                    var infowindow = new google.maps.InfoWindow({
+                        content: `Titulo: <strong>${hotspot.title}</strong><br>Categoria: ${hotspot.category.name}<br>Descricao: ${hotspot.description} <br>`
+                    });
+                    marker.addListener('click', function() {
+                        infowindow.open(map, marker);
+                    });
+                })
+            });
+        });
+        
+    }
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_MAPS_KEY_HERE&callback=initMap" async defer></script>
+{% endblock %}

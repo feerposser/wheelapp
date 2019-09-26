@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+
+<style>
+#map {
+        height: 100%;
+        width: 100%
+      }
+</style>
+
+<div id="map"></div>
+
+<script>
+
+    function initMap() {
+
+        let last_local = 0;
+        let markers = [];
+        let hotspots = undefined
+        let markers2 = [];
+
+        fetch("http://localhost:8000/api/hotspots_lat_lng/").then(function(response) {
+            response.json().then(function(hotspots) {
+                self.hotspots = hotspots
+                for (hotspot in hotspots) {
+                    addBlueDot(hotspots[hotspot]);
+                }
+            });
+        }); 
+
+        var map = new google.maps.Map(document.getElementById('map'), {
+            zoom: 15,
+            center: {lat: -28.2403304, lng: -52.3763615 }
+        });
+
+        var directionsDisplay = new google.maps.DirectionsRenderer;
+        var directionsService = new google.maps.DirectionsService;  
+        directionsDisplay.setMap(map);
+
+        map.addListener('click', function(event) {
+            marker = addMarker(event.latLng);
+            markers.push(event.latLng);
+
+            if (markers.length === 2) {
+                console.log('markers:', markers);
+                calculateAndDisplayRoute(directionsService, directionsDisplay, self.hotspots,
+                markers[0], markers[1]);
+                markers = [];
+            }
+        });
+
+        function addMarker(latLng) {
+            var marker = new google.maps.Marker({
+                position: latLng,
+                map: map
+            });
+            // 
+            map.panTo(latLng);
+        }  
+
+        function addBlueDot(latLng) {
+            var marker = new google.maps.Marker({
+                position: latLng,
+                map: map,
+                icon: {url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png"}
+            });
+            map.panTo(latLng);
+        }
+
+        // document.getElementById('whell').addEventListener('click', function() {
+        //   calculateAndDisplayRoute(directionsService, directionsDisplay, self.hotspots);
+        // });
+
+        function calculateAndDisplayRoute(directionsService, directionsDisplay, hotspots, local1, local2) {
+            console.log('local1:', local1, 'local2:', local2);
+            
+            var selectedMode = "WALKING"
+            directionsService.route({
+            origin: local1,
+            destination: local2,
+            travelMode: "WALKING",
+            provideRouteAlternatives: true,
+            }, function(response, status) {
+                if (status == 'OK') {
+                    var vai = {
+                        'geocoded_waypoints': response.geocoded_waypoints,
+                        'request': response.request,
+                        'routes': response.routes
+                        }
+                    console.log('-->', response);
+                    
+                    directionsDisplay.setDirections(vai);
+                } else {
+                    window.alert('Directions request failed due to ' + status);
+                }
+            });
+        }   
+    }
+
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_MAPS_KEY_HERE&callback=initMap" async defer></script>
+
+{% endblock %}
